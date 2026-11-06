@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách sản phẩm (Phân trang & Sắp xếp)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Mobile Shop</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/products}">Sản phẩm</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/customers}">Khách hàng</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/invoices}">Hóa đơn</a></li>
+            </ul>
+            <a th:href="@{/admin/logout}" class="btn btn-outline-light btn-sm">Đăng xuất</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Quản lý sản phẩm (Phân trang & Sắp xếp)</h2>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <!-- Thanh công cụ: Tìm kiếm + Sắp xếp + Phân trang -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <!-- Form tìm kiếm theo từ khóa -->
+            <form th:action="@{/products/search}" method="get" class="d-flex">
+                <input type="text" name="keyword" class="form-control me-2" placeholder="Tìm theo tên/hãng..." th:value="${keyword}">
+                <button type="submit" class="btn btn-primary">Tìm</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <!-- Form tìm kiếm theo khoảng giá -->
+            <form th:action="@{/products/search-by-price}" method="get" class="d-flex">
+                <input type="number" name="minPrice" class="form-control me-1" placeholder="Giá min" th:value="${minPrice}" style="width: 100px;">
+                <input type="number" name="maxPrice" class="form-control me-2" placeholder="Giá max" th:value="${maxPrice}" style="width: 100px;">
+                <button type="submit" class="btn btn-info">Lọc giá</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <!-- Form tìm kiếm theo tồn kho + Nút thêm mới -->
+            <div class="d-flex">
+                <form th:action="@{/products/search-by-stock}" method="get" class="d-flex me-2">
+                    <input type="number" name="minStock" class="form-control me-2" placeholder="Tồn kho tối thiểu" th:value="${minStock}" style="width: 150px;">
+                    <button type="submit" class="btn btn-warning">Lọc tồn kho</button>
+                </form>
+                <a th:href="@{/products/add}" class="btn btn-success">+ Thêm</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thanh sắp xếp -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="btn-group">
+                <span class="btn btn-outline-secondary disabled">Sắp xếp theo:</span>
+                <a th:href="@{/products/paged(sortBy='name', direction=${reverseDirection}, page=0, size=5)}"
+                   class="btn" th:classappend="${sortBy == 'name'} ? 'btn-primary' : 'btn-outline-primary'">
+                    Tên <span th:if="${sortBy == 'name'}" th:text="${direction == 'ASC'} ? '↑' : '↓'"></span>
+                </a>
+                <a th:href="@{/products/paged(sortBy='price', direction=${reverseDirection}, page=0, size=5)}"
+                   class="btn" th:classappend="${sortBy == 'price'} ? 'btn-primary' : 'btn-outline-primary'">
+                    Giá <span th:if="${sortBy == 'price'}" th:text="${direction == 'ASC'} ? '↑' : '↓'"></span>
+                </a>
+                <a th:href="@{/products/paged(sortBy='stock', direction=${reverseDirection}, page=0, size=5)}"
+                   class="btn" th:classappend="${sortBy == 'stock'} ? 'btn-primary' : 'btn-outline-primary'">
+                    Tồn kho <span th:if="${sortBy == 'stock'}" th:text="${direction == 'ASC'} ? '↑' : '↓'"></span>
+                </a>
+            </div>
+            <span class="ms-3 text-muted">Tổng: <span th:text="${totalItems}">0</span> sản phẩm</span>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách sản phẩm -->
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Tên sản phẩm</th>
+            <th>Hãng</th>
+            <th>Giá</th>
+            <th>Tồn kho</th>
+            <th>Ảnh</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${products}">
+            <td th:text="${product.id}"></td>
+            <td th:text="${product.name}"></td>
+            <td th:text="${product.brand}"></td>
+            <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+            <td th:text="${product.stock}"></td>
+            <td><img th:src="${product.image}" width="50" alt="Ảnh SP"></td>
+            <td>
+                <a th:href="@{/products/edit/{id}(id=${product.id})}" class="btn btn-sm btn-warning">Sửa</a>
+                <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-sm btn-danger"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')">Xóa</a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(products)}">
+            <td colspan="7" class="text-center">Không có sản phẩm nào.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Phân trang -->
+    <nav th:if="${totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <!-- Nút Previous -->
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/products/paged(page=${currentPage - 1}, size=5, sortBy=${sortBy}, direction=${direction})}">Previous</a>
+            </li>
+
+            <!-- Các nút số trang -->
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/products/paged(page=${i}, size=5, sortBy=${sortBy}, direction=${direction})}"
+                   th:text="${i + 1}">1</a>
+            </li>
+
+            <!-- Nút Next -->
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/products/paged(page=${currentPage + 1}, size=5, sortBy=${sortBy}, direction=${direction})}">Next</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Nút quay lại trang danh sách đơn giản -->
+    <div class="text-center mt-3">
+        <a th:href="@{/products}" class="btn btn-secondary">Xem danh sách đơn giản (không phân trang)</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

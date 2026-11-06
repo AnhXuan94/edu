@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách khách hàng (Phân trang)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Mobile Shop</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/products}">Sản phẩm</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/customers}">Khách hàng</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/invoices}">Hóa đơn</a></li>
+            </ul>
+            <a th:href="@{/admin/logout}" class="btn btn-outline-light btn-sm">Đăng xuất</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Quản lý khách hàng (Phân trang)</h2>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <!-- Nút thêm mới -->
+    <div class="mb-3">
+        <a th:href="@{/customers/add}" class="btn btn-success">+ Thêm khách hàng</a>
+        <span class="ms-3 text-muted">Tổng: <span th:text="${totalItems}">0</span> khách hàng</span>
+    </div>
+
+    <!-- Bảng danh sách khách hàng -->
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Họ tên</th>
+            <th>Số điện thoại</th>
+            <th>Email</th>
+            <th>Địa chỉ</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="customer : ${customers}">
+            <td th:text="${customer.id}"></td>
+            <td th:text="${customer.name}"></td>
+            <td th:text="${customer.phone}"></td>
+            <td th:text="${customer.email}"></td>
+            <td th:text="${customer.address}"></td>
+            <td>
+                <a th:href="@{/customers/edit/{id}(id=${customer.id})}" class="btn btn-sm btn-warning">Sửa</a>
+                <a th:href="@{/customers/delete/{id}(id=${customer.id})}" class="btn btn-sm btn-danger"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa khách hàng này không?')">Xóa</a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(customers)}">
+            <td colspan="6" class="text-center">Không có khách hàng nào.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Phân trang -->
+    <nav th:if="${totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <!-- Nút Previous -->
+            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                <a class="page-link" th:href="@{/customers/paged(page=${currentPage - 1}, size=5)}">Previous</a>
+            </li>
+
+            <!-- Các nút số trang -->
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/customers/paged(page=${i}, size=5)}"
+                   th:text="${i + 1}">1</a>
+            </li>
+
+            <!-- Nút Next -->
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/customers/paged(page=${currentPage + 1}, size=5)}">Next</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Nút quay lại trang danh sách đơn giản -->
+    <div class="text-center mt-3">
+        <a th:href="@{/customers}" class="btn btn-secondary">Xem danh sách đơn giản (không phân trang)</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

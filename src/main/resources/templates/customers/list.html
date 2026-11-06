@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Customers - Mobile Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <span class="mobile">Mobile</span> <span class="shop">SHOP</span>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a th:href="@{/}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+        <li><a th:href="@{/customers}" class="active"><i class="fas fa-users"></i> Customer</a></li>
+        <li><a th:href="@{/products}"><i class="fas fa-box"></i> Products</a></li>
+        <li><a th:href="@{/invoices}"><i class="fas fa-file-invoice"></i> Invoices</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <a th:href="@{/admin/logout}"><i class="fas fa-sign-out-alt"></i> Sign out</a>
+    </div>
+</aside>
+
+<div class="main-content">
+    <div class="page-header">
+        <i class="fas fa-users"></i>
+        <h2>Customers</h2>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a th:href="@{/customers/add}" class="btn btn-primary-orange">
+            <i class="fas fa-plus"></i> Add Customer
+        </a>
+    </div>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th>STT</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="customer, iterStat : ${customers}">
+            <td th:text="${iterStat.index + 1}"></td>
+            <td th:text="${customer.name}"></td>
+            <td th:text="${customer.phone}"></td>
+            <td th:text="${customer.email}"></td>
+            <td th:text="${customer.address}"></td>
+            <td><span class="status-active">Active</span></td>
+            <td class="action-icons">
+                <a th:href="@{/customers/delete/{id}(id=${customer.id})}"
+                   onclick="return confirm('Bạn có chắc chắn muốn xóa khách hàng này không?')">
+                    <i class="fas fa-lock"></i>
+                </a>
+                <a th:href="@{/customers/edit/{id}(id=${customer.id})}">
+                    <i class="fas fa-pen"></i>
+                </a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(customers)}">
+            <td colspan="7" class="text-center text-muted py-4">Không có khách hàng nào.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="text-center mt-4">
+        <a th:href="@{/customers/paged}" class="btn btn-info">
+            <i class="fas fa-chart-bar"></i> Xem với Phân trang (Nâng cao)
+        </a>
+    </div>
+</div>
+
+<!-- MODAL THÊM KHÁCH HÀNG -->
+<div class="modal fade" id="addModal" tabindex="-1" th:if="${customer != null and !isEdit}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/customers/add}" th:object="${customer}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" th:field="*{name}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone <span class="required">*</span></label>
+                        <input type="text" class="form-control" th:field="*{phone}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" th:field="*{email}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" class="form-control" th:field="*{address}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-gray" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-orange">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL SỬA KHÁCH HÀNG -->
+<div class="modal fade" id="editModal" tabindex="-1" th:if="${customer != null and isEdit}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/customers/update/{id}(id=${customer.id})}" th:object="${customer}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Customer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Name <span class="required">*</span></label>
+                        <input type="text" class="form-control" th:field="*{name}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone <span class="required">*</span></label>
+                        <input type="text" class="form-control" th:field="*{phone}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" th:field="*{email}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Address</label>
+                        <input type="text" class="form-control" th:field="*{address}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-gray" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary-orange">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    var isEdit = [[${isEdit}]];
+    if ([[${customer}]] != null) {
+        var modalId = isEdit ? 'editModal' : 'addModal';
+        var myModal = new bootstrap.Modal(document.getElementById(modalId));
+        myModal.show();
+    }
+</script>
+</body>
+</html>

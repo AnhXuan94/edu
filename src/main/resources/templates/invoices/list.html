@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoices - Mobile Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <span class="mobile">Mobile</span> <span class="shop">SHOP</span>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a th:href="@{/}"><i class="fas fa-th-large"></i> Dashboard</a></li>
+        <li><a th:href="@{/customers}"><i class="fas fa-users"></i> Customer</a></li>
+        <li><a th:href="@{/products}"><i class="fas fa-box"></i> Products</a></li>
+        <li><a th:href="@{/invoices}" class="active"><i class="fas fa-file-invoice"></i> Invoices</a></li>
+    </ul>
+    <div class="sidebar-footer">
+        <a th:href="@{/admin/logout}"><i class="fas fa-sign-out-alt"></i> Sign out</a>
+    </div>
+</aside>
+
+<div class="main-content">
+    <div class="page-header">
+        <i class="fas fa-file-invoice"></i>
+        <h2>Invoices</h2>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a th:href="@{/invoices/create}" class="btn btn-primary-orange">
+            <i class="fas fa-plus"></i> Create Invoice
+        </a>
+        <div class="d-flex gap-2">
+            <form th:action="@{/invoices/search}" method="get" class="d-flex">
+                <input type="text" name="keyword" class="form-control me-2" placeholder="Search by customer..." th:value="${keyword}" style="border-radius: 20px; padding: 8px 15px;">
+                <button type="submit" class="btn btn-primary-orange"><i class="fas fa-search"></i></button>
+            </form>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-chart-bar"></i> Revenue
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" th:href="@{/invoices/revenue/daily}">By Day</a></li>
+                    <li><a class="dropdown-item" th:href="@{/invoices/revenue/monthly}">By Month</a></li>
+                    <li><a class="dropdown-item" th:href="@{/invoices/revenue/yearly}">By Year</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Customer</th>
+            <th>Date</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="invoice : ${invoices}">
+            <td th:text="${invoice.id}"></td>
+            <td th:text="${invoice.customer?.name}"></td>
+            <td th:text="${#temporals.format(invoice.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${#numbers.formatDecimal(invoice.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+            <td>
+                <span th:if="${invoice.status.name() == 'PENDING'}" class="status-deactivate">Pending</span>
+                <span th:if="${invoice.status.name() == 'CONFIRMED'}" class="status-active">Confirmed</span>
+                <span th:if="${invoice.status.name() == 'SHIPPED'}" class="status-active">Shipped</span>
+                <span th:if="${invoice.status.name() == 'CANCELLED'}" class="status-deactivate">Cancelled</span>
+            </td>
+            <td class="action-icons">
+                <a th:href="@{/invoices/{id}(id=${invoice.id})}" title="Chi tiết">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <form th:action="@{/invoices/update-status/{id}(id=${invoice.id})}" method="post" class="d-inline">
+                    <select name="status" class="form-select form-select-sm d-inline-block" style="width: auto; border-radius: 5px;" onchange="this.form.submit()">
+                        <option value="PENDING" th:selected="${invoice.status.name() == 'PENDING'}">Pending</option>
+                        <option value="CONFIRMED" th:selected="${invoice.status.name() == 'CONFIRMED'}">Confirmed</option>
+                        <option value="SHIPPED" th:selected="${invoice.status.name() == 'SHIPPED'}">Shipped</option>
+                        <option value="CANCELLED" th:selected="${invoice.status.name() == 'CANCELLED'}">Cancel</option>
+                    </select>
+                </form>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(invoices)}">
+            <td colspan="6" class="text-center text-muted py-4">Không có hóa đơn nào.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

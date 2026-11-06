@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê doanh thu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">Mobile Shop</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/products}">Sản phẩm</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/customers}">Khách hàng</a></li>
+                <li class="nav-item"><a class="nav-link active" th:href="@{/invoices}">Hóa đơn</a></li>
+            </ul>
+            <a th:href="@{/admin/logout}" class="btn btn-outline-light btn-sm">Đăng xuất</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="mb-4">Thống kê doanh thu
+        <span th:if="${type == 'daily'}">theo ngày</span>
+        <span th:if="${type == 'monthly'}">theo tháng</span>
+        <span th:if="${type == 'yearly'}">theo năm</span>
+    </h2>
+
+    <!-- Menu chuyển đổi loại thống kê -->
+    <div class="mb-4">
+        <a th:href="@{/invoices/revenue/daily}" class="btn" th:classappend="${type == 'daily'} ? 'btn-primary' : 'btn-outline-primary'">Theo ngày</a>
+        <a th:href="@{/invoices/revenue/monthly}" class="btn" th:classappend="${type == 'monthly'} ? 'btn-primary' : 'btn-outline-primary'">Theo tháng</a>
+        <a th:href="@{/invoices/revenue/yearly}" class="btn" th:classappend="${type == 'yearly'} ? 'btn-primary' : 'btn-outline-primary'">Theo năm</a>
+    </div>
+
+    <!-- Bảng thống kê -->
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th th:if="${type == 'daily'}">Ngày</th>
+            <th th:if="${type == 'monthly'}">Tháng</th>
+            <th th:if="${type == 'yearly'}">Năm</th>
+            <th>Doanh thu</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- revenueData là List<Object[]> với [0] = period, [1] = revenue -->
+        <tr th:each="row : ${revenueData}">
+            <td th:if="${type == 'daily'}" th:text="${row[0]}"></td>
+            <td th:if="${type == 'monthly'}" th:text="${row[0]}"></td>
+            <td th:if="${type == 'yearly'}" th:text="${row[0]}"></td>
+            <td th:text="${#numbers.formatDecimal(row[1], 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(revenueData)}">
+            <td colspan="2" class="text-center">Chưa có dữ liệu doanh thu.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <a th:href="@{/invoices}" class="btn btn-secondary">Quay lại</a>
+</div>
+</body>
+</html>
